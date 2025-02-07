@@ -1,0 +1,24 @@
+fii_analyst_task:
+  description: >
+    Receive detailed financial data and relevant information about specific FIIs.
+    Evaluate the data to determine if each FII is a good investment opportunity for the current month.
+    Provide a clear recommendation: "Buy" or "Do Not Invest," along with a brief rationale to support your decision.
+  agent: fii_analyst
+  input:
+    - fii_name
+    - financial_metrics
+    - market_trends
+    - historical_performance
+  expected_output: >
+    A decision indicating whether the FII is a good investment ("Buy" or "Do Not Invest"), along with a concise justification explaining the reasoning behind the decision.
+
+report_writer_task:
+  description: >
+    Aggregate the decisions and justifications provided by the FII Analyst for all analyzed FIIs.
+    Compile these insights into a professionally written report, ensuring clarity, conciseness, and visual appeal.
+    The report should highlight key opportunities, risks, and provide an overall investment outlook for the current month.
+  agent: report_writer
+  input:
+    - fii_analysis_results
+  expected_output: >
+    A final report summarizing all analyzed FIIs, including the investment decisions and justifications, along with an executive summary highlighting the key insights.
