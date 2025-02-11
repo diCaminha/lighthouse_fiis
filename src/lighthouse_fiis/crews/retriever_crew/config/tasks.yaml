@@ -1,7 +1,7 @@
 fii_info_scrapper_task:
   description: >
     Take the list of FIIs {fiis} and scrape detailed, relevant information about these investments. 
-    Specifically gather both technical data and qualitative insights for each FII, focusing on the date {date}.
+    Specifically gather both technical data and qualitative insights for each FII, focusing on the date {date}. Focus on the date {date}.
     The information should include:
     - Recent price fluctuations and trading volume
     - Current vacancy rates and recent property transactions
@@ -12,11 +12,15 @@ fii_info_scrapper_task:
     Ensure the data is accurate, comprehensive, and well-structured, providing enough detail for an investment specialist 
     to assess whether it's a good time to invest in each FII.
 
+    Ensure that the amount of information is well enough to take decisions of investiment, so retrieve a great quantity of information and Specialist
+    opinions about the fii. 
+    
+    All the output information should be related to values in current date: {date}
   expected_output: >
     A JSON-like object with structured details for each FII, such as:
     [
       {
-        "fii_name": "FII ABC",
+        "fii_name": "",
         "price_info": {
           "current_price": "",
           "price_change": "",
@@ -27,10 +31,10 @@ fii_info_scrapper_task:
         "management_changes": "",
         "latest_report_highlights": "",
         "market_expectations": "",
-        "specialist_opinions": ""
+        "specialist_opinions": []
       },
       {
-        "fii_name": "FII XYZ",
+        "fii_name": "",
         ...
       }
     ]

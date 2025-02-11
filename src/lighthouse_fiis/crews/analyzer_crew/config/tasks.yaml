@@ -1,7 +1,8 @@
 fii_analyst_task:
   description: >
     Receive detailed financial data and relevant information about specific FIIs.
-    Evaluate the data to determine if each FII is a good investment opportunity for the current month.
+    Check if the information is correct with the current date {date}.
+    Evaluate the data to determine if each FII is a good investment opportunity right now, considering the date {date}.
     Provide a clear recommendation: "Buy" or "Do Not Invest," along with a brief rationale to support your decision.
   agent: fii_analyst
   input:
@@ -14,11 +15,19 @@ fii_analyst_task:
 
 report_writer_task:
   description: >
-    Aggregate the decisions and justifications provided by the FII Analyst for all analyzed FIIs.
+    Aggregate the decisions and justifications provided by the task fii_analyst_task for all analyzed FIIs.
     Compile these insights into a professionally written report, ensuring clarity, conciseness, and visual appeal.
-    The report should highlight key opportunities, risks, and provide an overall investment outlook for the current month.
+    The report should highlight key opportunities, risks, and provide an overall information. 
+    The information should be restricted to what the task fii_analyst_task returned.
+    
   agent: report_writer
   input:
     - fii_analysis_results
   expected_output: >
-    A final report summarizing all analyzed FIIs, including the investment decisions and justifications, along with an executive summary highlighting the key insights.
+    A final report summarizing all analyzed FIIs, including the investment decisions and justifications, along with an executive summary highlighting the key insights, as also
+    the main values from each fii, like:
+    - Preço Atual
+    - Variação de Preço no Ano
+    - Volume
+    - Pagamento de Dividendos
+    - Dividend Yield
