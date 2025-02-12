@@ -1,4 +1,8 @@
 #!/usr/bin/env python
+import sys
+import pysqlite3
+sys.modules['sqlite3'] = pysqlite3
+
 from random import randint
 from pydantic import BaseModel
 from crewai.flow import Flow, listen, start
