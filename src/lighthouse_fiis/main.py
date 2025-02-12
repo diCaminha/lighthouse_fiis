@@ -8,11 +8,12 @@ from dotenv import load_dotenv
 import streamlit as st
 import os
 from datetime import datetime
-import sys
-import pysqlite3
 
-# Override default sqlite3 with pysqlite3
-sys.modules["sqlite3"] = pysqlite3
+import chromadb
+
+# Use in-memory storage instead of SQLite
+client = chromadb.Client(settings={"persist_directory": None})
+
 
 load_dotenv()
 
