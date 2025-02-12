@@ -8,6 +8,11 @@ from dotenv import load_dotenv
 import streamlit as st
 import os
 from datetime import datetime
+import sys
+import pysqlite3
+
+# Override default sqlite3 with pysqlite3
+sys.modules["sqlite3"] = pysqlite3
 
 load_dotenv()
 
