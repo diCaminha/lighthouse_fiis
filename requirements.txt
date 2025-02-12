@@ -5,6 +5,7 @@ streamlit>=1.42.0
 
 # CrewAI (as you're using crewai.flow, retriever_crew, analyzer_crew)
 crewai>=0.100.1
+crewai-tools
 
 # SQLite Fix
 pysqlite3-binary
