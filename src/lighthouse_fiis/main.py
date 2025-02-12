@@ -10,12 +10,6 @@ import streamlit as st
 import os
 from datetime import datetime
 
-import sys
-import pysqlite3
-
-# Force the override globally
-sys.modules["sqlite3"] = pysqlite3
-
 
 load_dotenv()
 
