@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import sqlite_fix  # This forces the SQLite override
 from random import randint
 from pydantic import BaseModel
 from crewai.flow import Flow, listen, start
@@ -9,10 +10,11 @@ import streamlit as st
 import os
 from datetime import datetime
 
-import chromadb
+import sys
+import pysqlite3
 
-# Use in-memory storage instead of SQLite
-client = chromadb.Client(settings={"persist_directory": None})
+# Force the override globally
+sys.modules["sqlite3"] = pysqlite3
 
 
 load_dotenv()
