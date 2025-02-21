@@ -5,19 +5,39 @@ import os
 from dotenv import load_dotenv
 from datetime import datetime
 
-# Set page configuration at the very top
+# Set page configuration at the very top.
 st.set_page_config(page_title="FIIs Report Generator")
 
+# For local development, load the .env file.
 load_dotenv()
+
+# Try to load production secrets; if not found, fallback to local environment variables.
+try:
+    prod_config = st.secrets["postgres"]
+except Exception:
+    prod_config = None
+
+if prod_config:
+    DB_HOST = prod_config["host"]
+    DB_PORT = prod_config["port"]
+    DB_NAME = prod_config["dbname"]
+    DB_USER = prod_config["user"]
+    DB_PASSWORD = prod_config["password"]
+else:
+    DB_HOST = os.getenv("DB_HOST")
+    DB_PORT = os.getenv("DB_PORT")
+    DB_NAME = os.getenv("DB_NAME")
+    DB_USER = os.getenv("DB_USER")
+    DB_PASSWORD = os.getenv("DB_PASSWORD")
 
 @st.cache_resource
 def get_db_connection():
     conn = psycopg2.connect(
-        host=os.getenv("DB_HOST"),
-        port=os.getenv("DB_PORT"),
-        database=os.getenv("DB_NAME"),
-        user=os.getenv("DB_USER"),
-        password=os.getenv("DB_PASSWORD")
+        host=DB_HOST,
+        port=DB_PORT,
+        database=DB_NAME,
+        user=DB_USER,
+        password=DB_PASSWORD
     )
     return conn
 
@@ -43,7 +63,6 @@ def login_screen():
             if validate_login(email, password):
                 st.session_state.logged_in = True
                 st.success("Login successful!")
-                # No explicit rerun needed because session state update triggers a re-run.
             else:
                 st.error("Invalid email or password.")
         else:
