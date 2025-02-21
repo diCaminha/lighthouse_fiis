@@ -1,0 +1,15 @@
+version: '3.8'
+services:
+  postgres:
+    image: postgres:latest
+    container_name: lighthouse-postgres
+    environment:
+      POSTGRES_USER: lighthouse_user
+      POSTGRES_PASSWORD: lighthouse_password
+      POSTGRES_DB: lighthouse_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+volumes:
+  postgres_data:

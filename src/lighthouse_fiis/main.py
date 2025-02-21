@@ -1,92 +1,91 @@
 #!/usr/bin/env python
-from random import randint
-from pydantic import BaseModel
-from crewai.flow import Flow, listen, start
-from crews.retriever_crew.retriever_crew import RetrieverCrew
-from crews.analyzer_crew.analyzer_crew import AnalyzerCrew
-from dotenv import load_dotenv
 import streamlit as st
+import psycopg2
 import os
+from dotenv import load_dotenv
 from datetime import datetime
+
+# Set page configuration at the very top
+st.set_page_config(page_title="FIIs Report Generator")
 
 load_dotenv()
 
+@st.cache_resource
+def get_db_connection():
+    conn = psycopg2.connect(
+        host=os.getenv("DB_HOST"),
+        port=os.getenv("DB_PORT"),
+        database=os.getenv("DB_NAME"),
+        user=os.getenv("DB_USER"),
+        password=os.getenv("DB_PASSWORD")
+    )
+    return conn
 
-class LightHouseFiis(BaseModel):
-    fiis: list = []
-    date: str = ""
-    fiis_scrapped: list = []
+def validate_login(email, password):
+    """Validate the provided email and password against the PostgreSQL database."""
+    conn = get_db_connection()
+    cur = conn.cursor()
+    query = "SELECT 1 FROM users WHERE email = %s AND password = %s"
+    cur.execute(query, (email, password))
+    result = cur.fetchone()
+    cur.close()
+    return result is not None
 
+def login_screen():
+    st.title("Login")
+    st.write("Please log in to access the FIIs Report Generator")
+    
+    email = st.text_input("Email", key="email")
+    password = st.text_input("Password", type="password", key="password")
+    
+    if st.button("Login"):
+        if email and password:
+            if validate_login(email, password):
+                st.session_state.logged_in = True
+                st.success("Login successful!")
+                # No explicit rerun needed because session state update triggers a re-run.
+            else:
+                st.error("Invalid email or password.")
+        else:
+            st.error("Please enter both email and password.")
 
-class LightHouseFiisFlow(Flow[LightHouseFiis]):
-
-    @start()
-    def get_fiis_to_analyze(self):
-        self.state.date = datetime.now().strftime("%Y/%m/%d")
-
-    @listen(get_fiis_to_analyze)
-    def retrieve_info_fiis(self):
-        print("Retrieving information from list of fiis")
-        
-        retriever_crew = RetrieverCrew()
-
-        inputs = {
-            "fiis": self.state.fiis,
-            "date": self.state.date
-        }
-
-
-        output = retriever_crew.crew().kickoff(inputs)
-        self.state.fiis_scrapped = "\n".join([task.raw for task in output.tasks_output])
-
-    @listen(retrieve_info_fiis)
-    def analyze_specialist_fiis(self):
-
-        analyzer_crew = AnalyzerCrew()
-
-        inputs = {
-            "fiis_scrapped": self.state.fiis_scrapped,
-            "date": self.state.date
-        }
-
-        analyzer_crew.crew().kickoff(inputs)
-
-
-def kickoff():
-    lighthouse_fiis = LightHouseFiisFlow()
-    lighthouse_fiis.kickoff()
-
-
-if __name__ == "__main__":
-    st.set_page_config(page_title="FIIs Report Generator")
+def report_generator_app():
     st.title("Gerador de Relatório de FIIs")
-
-    # Form screen
+    st.write("Você está logado.")
+    
     st.header("Inserir Nomes dos FIIs")
     fii_names = st.text_area("Digite os nomes dos FIIs separados por vírgula:")
-
+    
     if st.button("Gerar relatório"):
         if fii_names.strip():
-            # Processing the FIIs
             fii_list = [fii.strip() for fii in fii_names.split(",")]
-            
-            # Placeholder for report generation logic
             with st.spinner("Gerando relatório..."):
-                lighthouse_flow = LightHouseFiisFlow()
-                lighthouse_flow.state.fiis = fii_list  # Setting the state with the list of FIIs
-                lighthouse_flow.kickoff()
-                
-                report_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../report.md"))
-            
-                try:
-                    with open(report_path, "r", encoding="utf-8") as file:
-                        report = file.read()
-                except FileNotFoundError:
-                    report = "O arquivo report.md não foi encontrado. Verifique se o processo de geração do relatório foi concluído com sucesso."
-
-
-            # Display the report
+                current_date = datetime.now().strftime("%Y/%m/%d")
+                report = (
+                    f"Relatório gerado em {current_date} para os FIIs: {', '.join(fii_list)}\n\n"
+                    "Decisão: Buy/Do Not Invest"
+                )
             st.header("Relatório Gerado")
             st.markdown(report)
         else:
             st.warning("Por favor, insira pelo menos um nome de FII.")
+
+def main():
+    # Initialize the login state if not already set.
+    if "logged_in" not in st.session_state:
+        st.session_state.logged_in = False
+
+    # Create a placeholder container for the login screen.
+    placeholder = st.empty()
+
+    # If the user is not logged in, render the login screen in the placeholder.
+    if not st.session_state.logged_in:
+        with placeholder.container():
+            login_screen()
+    else:
+        # Clear the placeholder so the login form disappears.
+        placeholder.empty()
+        report_generator_app()
+
+if __name__ == "__main__":
+    main()
