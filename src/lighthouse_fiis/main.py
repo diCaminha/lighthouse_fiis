@@ -1,4 +1,12 @@
 #!/usr/bin/env python
+# Add these lines at the top
+import sys
+import os
+
+__import__('pysqlite3')
+sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+
+# Then continue with your existing imports
 from random import randint
 from pydantic import BaseModel
 from crewai.flow import Flow, listen, start
@@ -8,6 +16,7 @@ from dotenv import load_dotenv
 import streamlit as st
 import os
 from datetime import datetime
+
 
 load_dotenv()
 
