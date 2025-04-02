@@ -3,8 +3,6 @@
 import sys
 import os
 
-__import__('pysqlite3')
-sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 
 # Then continue with your existing imports
 from random import randint
@@ -43,7 +41,6 @@ class LightHouseFiisFlow(Flow[LightHouseFiis]):
             "fiis": self.state.fiis,
             "date": self.state.date
         }
-
 
         output = retriever_crew.crew().kickoff(inputs)
         self.state.fiis_scrapped = "\n".join([task.raw for task in output.tasks_output])
@@ -90,6 +87,31 @@ if __name__ == "__main__":
                 try:
                     with open(report_path, "r", encoding="utf-8") as file:
                         report = file.read()
+                        
+                        from openai import OpenAI
+                        client = OpenAI()
+
+                        completion = client.chat.completions.create(
+                            model="gpt-4o",
+                            messages=[
+                                {
+                                    "role": "system",
+                                    "content": "you are a analyzer of information about investiments and checker of not well filled information"
+                                },
+                                 {
+                                    "role": "user",
+                                    "content": """
+                                        look at this information about a Fundo de Investimento Imobiliario, and return True if it is filled well, or False if some values is not informed.
+                                        expected output: True or False
+                                    """
+                                }
+                            ]
+                        )
+
+                        is_info_ok = completion.choices[0].message.content
+                        if is_info_ok == "False":
+                            st.warning("Não foi possivel encontrar dados completos. Por favor, tente de novo.")                            
+                        
                 except FileNotFoundError:
                     report = "O arquivo report.md não foi encontrado. Verifique se o processo de geração do relatório foi concluído com sucesso."
 
