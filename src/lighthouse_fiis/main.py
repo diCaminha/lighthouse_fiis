@@ -100,8 +100,8 @@ if __name__ == "__main__":
                                 },
                                  {
                                     "role": "user",
-                                    "content": """
-                                        look at this information about a Fundo de Investimento Imobiliario, and return True if it is filled well, or False if some values is not informed.
+                                    "content": f"""
+                                        look at this information about a Fundo de Investimento Imobiliario: {report}, and return True if it is filled well, or False if some values is not informed.
                                         expected output: True or False
                                     """
                                 }
@@ -109,8 +109,10 @@ if __name__ == "__main__":
                         )
 
                         is_info_ok = completion.choices[0].message.content
+                        print(f"is info ok: {is_info_ok}")
+                        print()
                         if is_info_ok == "False":
-                            st.warning("Não foi possivel encontrar dados completos. Por favor, tente de novo.")                            
+                            st.warning("Não foi possivel encontrar dados completos. Por favor, tente de novo.")                        
                         
                 except FileNotFoundError:
                     report = "O arquivo report.md não foi encontrado. Verifique se o processo de geração do relatório foi concluído com sucesso."
@@ -118,6 +120,9 @@ if __name__ == "__main__":
 
             # Display the report
             st.header("Relatório Gerado")
-            st.markdown(report)
+            if is_info_ok == "False":
+                st.markdown(None)
+            else:
+                st.markdown(report)
         else:
             st.warning("Por favor, insira pelo menos um nome de FII.")
