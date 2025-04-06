@@ -1,15 +1,12 @@
 version: '3.8'
 services:
-  postgres:
-    image: postgres:latest
-    container_name: lighthouse-postgres
-    environment:
-      POSTGRES_USER: lighthouse_user
-      POSTGRES_PASSWORD: lighthouse_password
-      POSTGRES_DB: lighthouse_db
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
     ports:
-      - "5433:5432"
+      - "27017:27017"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - mongo-data:/data/db
+
 volumes:
-  postgres_data:
+  mongo-data:

@@ -9,10 +9,17 @@ from crews.analyzer_crew.analyzer_crew import AnalyzerCrew
 from dotenv import load_dotenv
 import streamlit as st
 from datetime import datetime
+from pymongo import MongoClient
+
 
 load_dotenv()
 
-# Array com FIIs (exemplo parcial)
+client = MongoClient("mongodb://localhost:27017/")
+
+db = client.lighthousefiis
+collection = db.fiis
+is_info_ok = True
+
 available_fiis = [
     'ABCP11', 'ALZR11', 'BBPO11', 'BCFF11', 'BCIA11', 'BRCR11', 'CSHG11',
     'CTNM11', 'CPTS11', 'FEXC11', 'FIIB11', 'FIIH11', 'GGRC11', 'HABT11',
@@ -63,52 +70,63 @@ if __name__ == "__main__":
     st.title("Gerador de Relatório de FIIs")
 
     st.header("Selecionar FIIs")
-    # Cria um multiselect para selecionar os FIIs disponíveis
-    selected_fiis = st.multiselect("Selecione os FIIs:", options=available_fiis)
+    selected_fii = st.selectbox("Selecione os FIIs:", options=available_fiis)
 
     if st.button("Gerar relatório"):
-        if selected_fiis:
-            fii_list = selected_fiis  # Já temos uma lista de FIIs selecionados
-
-            with st.spinner("Gerando relatório..."):
-                lighthouse_flow = LightHouseFiisFlow()
-                lighthouse_flow.state.fiis = fii_list
-                lighthouse_flow.kickoff()
-
-                report_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../report.md"))
+        if selected_fii:
             
-                try:
-                    with open(report_path, "r", encoding="utf-8") as file:
-                        report = file.read()
-                        
-                        from openai import OpenAI
-                        client = OpenAI()
+            document = collection.find_one({"fii": selected_fii})
 
-                        completion = client.chat.completions.create(
-                            model="gpt-4o",
-                            messages=[
-                                {
-                                    "role": "system",
-                                    "content": "you are a analyzer of information about investiments and checker of not well filled information"
-                                },
-                                {
-                                    "role": "user",
-                                    "content": f"""
-                                        look at this information about a Fundo de Investimento Imobiliario: {report}, and return True if it is filled well, or False if some values is not informed.
-                                        expected output: True or False
-                                    """
-                                }
-                            ]
-                        )
+            if document:
+                report = document["report"]
+                is_info_ok = True
+                
+            else:
+                with st.spinner("Gerando relatório..."):
+                    lighthouse_flow = LightHouseFiisFlow()
+                    lighthouse_flow.state.fiis = selected_fii
+                    lighthouse_flow.kickoff()
 
-                        is_info_ok = completion.choices[0].message.content
-                        print(f"is info ok: {is_info_ok}")
-                        if is_info_ok == "False":
-                            st.warning("Não foi possível encontrar dados completos. Por favor, tente de novo.")
-                        
-                except FileNotFoundError:
-                    report = "O arquivo report.md não foi encontrado. Verifique se o processo de geração do relatório foi concluído com sucesso."
+                    report_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../report.md"))
+                
+                    try:
+                        with open(report_path, "r", encoding="utf-8") as file:
+                            report = file.read()
+                            
+                            from openai import OpenAI
+                            client = OpenAI()
 
+                            completion = client.chat.completions.create(
+                                model="gpt-4o",
+                                messages=[
+                                    {
+                                        "role": "system",
+                                        "content": "you are a analyzer of information about investiments and checker of not well filled information"
+                                    },
+                                    {
+                                        "role": "user",
+                                        "content": f"""
+                                            look at this information about a Fundo de Investimento Imobiliario: {report}, and return True if it is filled well, or False if some values is not informed.
+                                            expected output: True or False
+                                        """
+                                    }
+                                ]
+                            )
+
+                            is_info_ok = completion.choices[0].message.content
+                            print(f"is info ok: {is_info_ok}")
+                            if is_info_ok == "False":
+                                st.warning("Não foi possível encontrar dados completos. Por favor, tente de novo.")
+                            
+                            else:
+                                # salvar key document: selected_fii -> report
+                                print(f"saving {selected_fii} on db.")   
+                                collection.insert_one({"fii": selected_fii, "report": report})                    
+                            
+                    except FileNotFoundError:
+                        report = "O arquivo report.md não foi encontrado. Verifique se o processo de geração do relatório foi concluído com sucesso."
+
+                
             st.header("Relatório Gerado")
             if is_info_ok == "False":
                 st.markdown("")
