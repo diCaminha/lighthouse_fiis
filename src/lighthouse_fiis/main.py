@@ -14,7 +14,7 @@ from pymongo import MongoClient
 
 load_dotenv()
 
-client = MongoClient("mongodb://localhost:27017/")
+client = MongoClient(os.environ["URL_DB_MONGO"])
 
 db = client.lighthousefiis
 collection = db.fiis
