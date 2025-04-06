@@ -14,6 +14,11 @@ from pymongo import MongoClient
 
 load_dotenv()
 
+
+__import__('pysqlite3')
+sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+
+
 client = MongoClient(os.environ["URL_DB_MONGO"])
 
 db = client.lighthousefiis
