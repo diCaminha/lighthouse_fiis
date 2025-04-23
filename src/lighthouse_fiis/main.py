@@ -14,6 +14,7 @@ from dotenv import load_dotenv
 import streamlit as st
 from datetime import datetime
 from pymongo import MongoClient
+from datetime import datetime
 
 
 load_dotenv()
@@ -101,8 +102,11 @@ if __name__ == "__main__":
             document = collection.find_one({"fii": selected_fii})
 
             if document:
-                report = document["report"]
-                is_info_ok = True
+                date = document["date"]
+                today = datetime.today().strftime('%d/%m/%Y')
+                if today == date:
+                    report = document["report"]
+                    is_info_ok = True
                 
             else:
                 with st.spinner("Gerando relatório..."):
@@ -142,9 +146,9 @@ if __name__ == "__main__":
                                 st.warning("Não foi possível encontrar dados completos. Por favor, tente de novo.")
                             
                             else:
-                                # salvar key document: selected_fii -> report
-                                print(f"saving {selected_fii} on db.")   
-                                collection.insert_one({"fii": selected_fii, "report": report})                    
+                                print(f"saving {selected_fii} on db.")
+                                today = datetime.today().strftime('%d/%m/%Y')
+                                collection.insert_one({"fii": selected_fii, "report": report, "date": today })                    
                             
                     except FileNotFoundError:
                         report = "O arquivo report.md não foi encontrado. Verifique se o processo de geração do relatório foi concluído com sucesso."
