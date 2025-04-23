@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 import sys
 
-__import__('pysqlite3')
-sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+#__import__('pysqlite3')
+#sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 
 import os
 from random import randint
@@ -25,14 +25,32 @@ db = client.lighthousefiis
 collection = db.fiis
 is_info_ok = True
 
-available_fiis = [
+try:
+    b3_url = "https://sistemaswebb3-listados.b3.com.br/export-csv/7"
+    b3 = pd.read_csv(b3_url, sep=';')
+    available_fiis = sorted(b3["Código"].str.strip().tolist())
+except:
+    available_fiis = [
     'ABCP11', 'ALZR11', 'BBPO11', 'BCFF11', 'BCIA11', 'BRCR11', 'CSHG11',
     'CTNM11', 'CPTS11', 'FEXC11', 'FIIB11', 'FIIH11', 'GGRC11', 'HABT11',
     'HABR11', 'HGFF11', 'HGBS11', 'HGLG11', 'HGRE11', 'HGRU11', 'HSML11',
     'HFOF11', 'IRDM11', 'JSRE11', 'KNCR11', 'KNIP11', 'KNRI11', 'KFOF11',
-    'MXRF11', 'PORD11', 'RBRD11', 'RBRF11', 'RBRR11', 'RBRP11', 'RBRY11',
+    'MXRF11', 'MALL11', 'PORD11', 'RBRD11', 'RBRF11', 'RBRR11', 'RBRP11', 'RBRY11',
     'TRXF11', 'VRTA11', 'VRLG11', 'VINO11', 'VISC11', 'XPCC11', 'XPIN11', 'XPML11'
-]
+    ]
+
+if not available_fiis:
+    available_fiis = [
+    'ABCP11', 'ALZR11', 'BBPO11', 'BCFF11', 'BCIA11', 'BRCR11', 'CSHG11',
+    'CTNM11', 'CPTS11', 'FEXC11', 'FIIB11', 'FIIH11', 'GGRC11', 'HABT11',
+    'HABR11', 'HGFF11', 'HGBS11', 'HGLG11', 'HGRE11', 'HGRU11', 'HSML11',
+    'HFOF11', 'IRDM11', 'JSRE11', 'KNCR11', 'KNIP11', 'KNRI11', 'KFOF11',
+    'MXRF11', 'MALL11', 'PORD11', 'RBRD11', 'RBRF11', 'RBRR11', 'RBRP11', 'RBRY11',
+    'TRXF11', 'VRTA11', 'VRLG11', 'VINO11', 'VISC11', 'XPCC11', 'XPIN11', 'XPML11'
+    ]
+
+
+
 
 class LightHouseFiis(BaseModel):
     fiis: list = []
