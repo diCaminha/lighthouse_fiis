@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 import sys
 
-#__import__('pysqlite3')
-#sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+__import__('pysqlite3')
+sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 
 import os
 from random import randint
@@ -31,6 +31,7 @@ try:
     b3 = pd.read_csv(b3_url, sep=';')
     available_fiis = sorted(b3["Código"].str.strip().tolist())
 except:
+    print("error trying to get fiis from b3. Getting cached fiis...")
     available_fiis = [
     'ABCP11', 'ALZR11', 'BBPO11', 'BCFF11', 'BCIA11', 'BRCR11', 'CSHG11',
     'CTNM11', 'CPTS11', 'FEXC11', 'FIIB11', 'FIIH11', 'GGRC11', 'HABT11',
@@ -102,11 +103,16 @@ if __name__ == "__main__":
             document = collection.find_one({"fii": selected_fii})
 
             if document:
-                date = document["date"]
+                date = document.get("date", None)
                 today = datetime.today().strftime('%d/%m/%Y')
-                if today == date:
+                
+                if date and today == date:
                     report = document["report"]
                     is_info_ok = True
+                else:
+                    print("Deleting old FII report...")
+                    collection.delete_one({"fii": selected_fii})
+                    is_info_ok = False
                 
             else:
                 with st.spinner("Gerando relatório..."):
